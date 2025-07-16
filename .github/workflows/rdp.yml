@@ -1,0 +1,30 @@
+name: Windows Germany RDP
+
+on:
+  workflow_dispatch:
+    inputs:
+      ngrok_token:
+        description: 'Enter Your Ngrok Token'
+        required: true
+        default: ''
+        
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Setup RDP (Germany)
+      run: |
+        choco install ngrok -y
+        ngrok authtoken ${{ github.event.inputs.ngrok_token }}
+        net user Administrator MyNewPassword123!
+        netsh advfirewall set allprofiles state off
+        Enable-PSRemoting -Force
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        start ngrok tcp --region=eu 3389
+
+    - name: Display RDP Info
+      run: |
+        echo "RDP Server Ready. Use this info to connect:"
+        timeout 60
